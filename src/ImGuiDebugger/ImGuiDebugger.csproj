@@ -1,0 +1,18 @@
+﻿<Project Sdk="Divine.NET.Sdk">
+
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DivineUseProtobufs>true</DivineUseProtobufs>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="ImGui.NET">
+      <HintPath>C:\Program Files\Divine\References\ImGui.NET.dll</HintPath>
+    </Reference>
+    <Reference Include="Snappy.Sharp">
+      <HintPath>C:\Program Files\Divine\References\Snappy.Sharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
