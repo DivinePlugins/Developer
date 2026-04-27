@@ -1,0 +1,97 @@
+namespace Debugger.Tools.OnExecuteOrder;
+
+using System.Collections.Generic;
+
+using Debugger.Menus;
+using Debugger.Metadata;
+
+using Divine.Menu;
+using Divine.Menu.EventArgs;
+using Divine.Menu.Items;
+using Divine.Numerics;
+using Divine.Order;
+using Divine.Order.EventArgs;
+using Divine.Order.Orders.Components;
+
+using Logger;
+
+[Priority(88)]
+internal sealed class Abilities(IMainMenu mainMenu, ILog log) : IDebuggerTool
+{
+    private readonly HashSet<OrderType> orders =
+    [
+        OrderType.Cast,
+        OrderType.CastPosition,
+        OrderType.CastTarget,
+        OrderType.CastRune,
+        OrderType.CastTree,
+        OrderType.CastToggle
+    ];
+
+    private readonly MenuSwitcher enabled = mainMenu.OnExecuteOrderMenu.AddSwitcher("Abilities", false).SetTooltip("Player.OnExecuteOrder");
+
+    public void Activate()
+    {
+        this.enabled.ValueChanged += this.EnabledOnPropertyChanged;
+    }
+
+    public void Dispose()
+    {
+        this.enabled.ValueChanged -= this.EnabledOnPropertyChanged;
+    }
+
+    private void EnabledOnPropertyChanged(MenuSwitcher switcher, SwitcherChangedEventArgs e)
+    {
+        if (e.Value)
+        {
+            OrderManager.OrderAdding += this.PlayerOnExecuteOrder;
+        }
+        else
+        {
+            OrderManager.OrderAdding -= this.PlayerOnExecuteOrder;
+        }
+    }
+
+    private bool IsValid(OrderAddingEventArgs e)
+    {
+        if (!this.orders.Contains(e.Order.Type))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private void PlayerOnExecuteOrder(OrderAddingEventArgs e)
+    {
+        if (!this.IsValid(e))
+        {
+            return;
+        }
+
+        var item = new LogItem(LogType.ExecuteOrder, Color.Magenta, "Execute ability order");
+
+        var order = e.Order;
+        if (order.Ability != null)
+        {
+            item.AddLine("Ability name: " + order.Ability.Name, order.Ability.Name);
+            item.AddLine("Ability network name: " + order.Ability.NetworkName, order.Ability.NetworkName);
+            item.AddLine("Ability classID: " + order.Ability.ClassId, order.Ability.ClassId);
+        }
+
+        item.AddLine("Order: " + order.Type, order.Type);
+        if (order.Target != null)
+        {
+            item.AddLine("Target name: " + order.Target.Name, order.Target.Name);
+            item.AddLine("Target network name: " + order.Target.NetworkName, order.Target.NetworkName);
+            item.AddLine("Target classID: " + order.Target.ClassId, order.Target.ClassId);
+        }
+
+        if (!order.Position.IsDefault)
+        {
+            item.AddLine("Position: " + order.Position, order.Position);
+        }
+
+        log.Display(item);
+    }
+}

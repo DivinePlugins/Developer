@@ -427,3 +427,11 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Custom
+**/Resources/Libraries/
+**/Resources/Generated/
+.dotnet/*
+.dotnet-cli/*
+.dotnet-cli-home/*
+/service

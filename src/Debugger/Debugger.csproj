@@ -1,0 +1,9 @@
+﻿<Project Sdk="Divine.Net.Sdk">
+  <PropertyGroup>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="D:\Divine.System.Avalonia\artifacts\Debug\Dependencies\TextCopy.dll" />
+  </ItemGroup>
+</Project>
