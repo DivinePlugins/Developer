@@ -2,7 +2,5 @@
 
   <PropertyGroup>
     <Nullable>disable</Nullable>
-
-    <UseDivineDependencies>true</UseDivineDependencies>
   </PropertyGroup>
 </Project>
