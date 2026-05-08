@@ -7,10 +7,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-using Divine.Common.Helpers;
-using Divine.Common.Log;
-
-using global::ImGuiDebugger.Enum;
+using ImGuiDebugger.Enum;
 
 internal sealed partial class Debugger
 {
@@ -36,7 +33,7 @@ internal sealed partial class Debugger
         }
         catch (Exception e)
         {
-            LogManager.Error(e);
+            Logger.LogError(e);
         }
     }
 
@@ -79,7 +76,7 @@ internal sealed partial class Debugger
         }
         catch (Exception e)
         {
-            LogManager.Error(e);
+            Logger.LogError(e);
         }
     }
 

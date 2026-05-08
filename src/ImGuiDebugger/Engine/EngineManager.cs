@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using Divine.Common.Log;
 using Divine.Entity;
 using Divine.Entity.Entities;
 using Divine.Network;
@@ -22,6 +21,8 @@ using Divine.Protobufs.Dota2;
 using Divine.Service;
 
 using Google.Protobuf;
+
+using Grpc.Core.Logging;
 
 internal class EngineManager : Bootstrapper
 {
@@ -218,7 +219,7 @@ internal class EngineManager : Bootstrapper
 
     public static void onPacketEntities(CSVCMsg_PacketEntities message)
     {
-        if (message.IsDelta)
+        if (message.LegacyIsDelta)
         {
             if (serverTick == message.DeltaFrom)
             {
@@ -227,17 +228,17 @@ internal class EngineManager : Bootstrapper
 
             if (entitiesServerTick < message.DeltaFrom)
             {
-                LogManager.Debug($"defer message with delta from {message.DeltaFrom} at {serverTick}, since we are only at {entitiesServerTick}");
+                Logger.LogDebug($"defer message with delta from {message.DeltaFrom} at {serverTick}, since we are only at {entitiesServerTick}");
 
                 deferredMessages[serverTick] = message;
 
                 if (deferredMessages.Count > DEFERRED_MESSAGE_MAX)
                 {
-                    LogManager.Warn($"more than {DEFERRED_MESSAGE_MAX} deferred messages, forcing execution, here be dragons");
+                    Logger.LogWarning($"more than {DEFERRED_MESSAGE_MAX} deferred messages, forcing execution, here be dragons");
 
                     foreach (var (deferredMessageTick, deferredMessage) in deferredMessages)
                     {
-                        LogManager.Warn($"forcing executing deferred message with delta {deferredMessage.DeltaFrom}, we are now at tick {deferredMessageTick}");
+                        Logger.LogWarning($"forcing executing deferred message with delta {deferredMessage.DeltaFrom}, we are now at tick {deferredMessageTick}");
                         processAndRunPacketEntities(deferredMessage, deferredMessageTick);
                     }
 
@@ -249,7 +250,7 @@ internal class EngineManager : Bootstrapper
         }
         else if (deferredMessages.Count != 0)
         {
-            LogManager.Debug("received full packet, disposing deferred message");
+            Logger.LogDebug("received full packet, disposing deferred message");
             deferredMessages.Clear();
         }
 
@@ -258,11 +259,11 @@ internal class EngineManager : Bootstrapper
             var deferredToExecute = new SortedDictionary<int, CSVCMsg_PacketEntities>(deferredMessages.Where(x => x.Key < serverTick).ToDictionary(x => x.Key, x => x.Value));
             if (deferredToExecute.Count != 0)
             {
-                LogManager.Debug($"server is now at tick {serverTick}");
+                Logger.LogDebug($"server is now at tick {serverTick}");
 
                 foreach (var (deferredMessageTick, deferredMessage) in deferredToExecute)
                 {
-                    LogManager.Debug($"executing deferred message with delta {deferredMessage.DeltaFrom}, we are now at tick {deferredMessageTick}");
+                    Logger.LogDebug($"executing deferred message with delta {deferredMessage.DeltaFrom}, we are now at tick {deferredMessageTick}");
                     processAndRunPacketEntities(deferredMessage, deferredMessageTick);
                 }
 
@@ -282,7 +283,7 @@ internal class EngineManager : Bootstrapper
 
             if (isDebugEnabled)
             {
-                LogManager.Debug($"executing {queuedUpdates.Count} changes");
+                Logger.LogDebug($"executing {queuedUpdates.Count} changes");
             }
 
             foreach (var queuedUpdate in queuedUpdates)
@@ -305,7 +306,7 @@ internal class EngineManager : Bootstrapper
     {
         if (isDebugEnabled) // log.isDebugEnabled()
         {
-            LogManager.Debug($"processing packet entities: now: {actualTick:6}, delta-from: {message.DeltaFrom:6}, update-count: {message.UpdatedEntries:5}, baseline: {message.Baseline}, update-baseline: {message.UpdateBaseline}");
+            Logger.LogDebug($"processing packet entities: now: {actualTick:6}, delta-from: {message.DeltaFrom:6}, update-count: {message.UpdatedEntries:5}, baseline: {message.Baseline}, update-baseline: {message.UpdateBaseline}");
         }
 
         if (message.UpdateBaseline)
@@ -401,7 +402,7 @@ internal class EngineManager : Bootstrapper
             }
         }
 
-        if (engineType.handleDeletions() && message.IsDelta)
+        if (engineType.handleDeletions() && message.LegacyIsDelta)
         {
             int n = fieldReader.readDeletions(stream, engineType.getIndexBits(), deletions);
             for (int i = 0; i < n; i++)
@@ -423,7 +424,7 @@ internal class EngineManager : Bootstrapper
 
         if (isDebugEnabled)
         {
-            LogManager.Debug($"update finished for tick {actualTick}");
+            Logger.LogDebug($"update finished for tick {actualTick}");
         }
     }
 
@@ -444,7 +445,7 @@ internal class EngineManager : Bootstrapper
 
     private static void executeEntityCreate(int eIdx, int serial, DTClass dtClass, CSVCMsg_PacketEntities message, FieldChanges changes)
     {
-        Baseline baseline = getBaseline(dtClass.getClassId(), message.Baseline, eIdx, message.IsDelta);
+        Baseline baseline = getBaseline(dtClass.getClassId(), message.Baseline, eIdx, message.LegacyIsDelta);
         IEntityState newState = baseline.state.copy();
         changes.applyTo(newState);
         NetworkEntity entity = entityRegistry.create(
@@ -602,7 +603,7 @@ internal class EngineManager : Bootstrapper
             return;
         }
 
-        LogManager.Debug($"\t{which:6}: index: {entity.getIndex():4}, serial: {entity.getSerial():X03}, handle: {entity.getHandle():7}, class: {entity.getDtClass().getDtName()}");
+        Logger.LogDebug($"\t{which:6}: index: {entity.getIndex():4}, serial: {entity.getSerial():X03}, handle: {entity.getHandle():7}, class: {entity.getDtClass().getDtName()}");
     }
 
     private static void debugUpdateEvent(string which, NetworkEntity entity)
@@ -612,7 +613,7 @@ internal class EngineManager : Bootstrapper
             return;
         }
 
-        LogManager.Info($"\t{which:6}: index: {entity.getIndex():4}, serial: {entity.getSerial():X03}, handle: {entity.getHandle():7}, class: {entity.getDtClass().getDtName()}");
+        Logger.LogInformation($"\t{which:6}: index: {entity.getIndex():4}, serial: {entity.getSerial():X03}, handle: {entity.getHandle():7}, class: {entity.getDtClass().getDtName()}");
     }
 
     private static Baseline getBaseline(int clsId, int baseline, int entityIdx, bool delta)
@@ -641,7 +642,7 @@ internal class EngineManager : Bootstrapper
 
         if (!rawBaselines.TryGetValue(clsId, out var raw) || raw.Length == 0)
         {
-            LogManager.Error($"Baseline for class {cls.getDtName()} ({clsId}) not found. Continuing anyway, but data might be missing!");
+            Logger.LogError($"Baseline for class {cls.getDtName()} ({clsId}) not found. Continuing anyway, but data might be missing!");
         }
         else
         {

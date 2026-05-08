@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-using Divine.Common.Service;
+using Divine.Service;
 using Divine.Menu.EventArgs;
 using Divine.Menu.Items;
 using Divine.Renderer;
