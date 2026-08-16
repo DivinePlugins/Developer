@@ -2,8 +2,6 @@ namespace Debugger;
 
 using System;
 
-using Divine.Numerics;
-
 internal static class Extensions
 {
     public static Color SetAlpha(this Color color, int alpha)

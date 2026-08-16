@@ -10,7 +10,6 @@ using Debugger.Metadata;
 using Divine.Menu;
 using Divine.Menu.EventArgs;
 using Divine.Menu.Items;
-using Divine.Numerics;
 using Divine.Particle;
 using Divine.Particle.EventArgs;
 using Divine.Particle.Particles;
@@ -105,6 +104,14 @@ internal sealed class Particles : IDebuggerTool
         var item = new LogItem(LogType.Particle, Color.LightGreen, "Particle added");
 
         item.AddLine("Name: " + particle.Name, particle.Name);
+
+        var owner = particle.Owner;
+        if (owner is not null)
+        {
+            item.AddLine("Owner name: " + owner.Name, owner.Name);
+            item.AddLine("Owner classId: " + owner.ClassId, owner.ClassId);
+            item.AddLine("Owner index: " + owner.Index, owner.Index);
+        }
 
         await Task.Delay(1);
 

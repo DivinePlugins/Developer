@@ -129,6 +129,7 @@ internal sealed class Units : IDebuggerTool
             var item = new LogItem(LogType.Unit, Color.PaleGreen, "Unit information");
 
             item.AddLine("Unit name: " + unit.Name, unit.Name);
+            item.AddLine("Unit native: " + unit.Native.ToString("X"), unit.Native.ToString("X"));
             item.AddLine("Unit network name: " + unit.NetworkName, unit.NetworkName);
             item.AddLine("Unit classID: " + unit.ClassId, unit.ClassId);
             var localizeName = LocalizationHelper.LocalizeName(unit);
