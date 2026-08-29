@@ -96,7 +96,7 @@ internal sealed class Units : IDebuggerTool
         }
     }
 
-    private void EntityManagerOnEntityAdded(ref EntityAddedEventArgs e)
+    private void EntityManagerOnEntityAdded(EntityAddedEventArgs e)
     {
         if (e.IsCollection)
         {
@@ -127,7 +127,7 @@ internal sealed class Units : IDebuggerTool
         this.log.Display(item);
     }
 
-    private void EntityManagerOnEntityRemoved(ref EntityRemovedEventArgs e)
+    private void EntityManagerOnEntityRemoved(EntityRemovedEventArgs e)
     {
         if (e.Entity is not Unit unit)
         {
